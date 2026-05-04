@@ -34,9 +34,10 @@ vector<double> gauss(double mean, double dev, int n) {
     cerr << "generation finished... \n";
     return values;
 }
+
+
  
- 
-int histogram(const vector<double>& gen, double minVal, double maxVal, int cols) {
+int histogram(const vector<double>& gen, double minVal, double maxVal, int cols, double mean, double dev) {
     vector<int> height(cols, 0);
     double range = maxVal - minVal;
     int before = 0, after = 0;
@@ -52,12 +53,40 @@ int histogram(const vector<double>& gen, double minVal, double maxVal, int cols)
             height[bin]++;
         }
     }
-
+    double centersX[cols];
+    
+    double devError, meanError, sum1, sum2;
+    sum1 = 0; //выборочное среднее
+    sum2 = 0; //выборочное значение стандартного отклонения
+    
+    int n = gen.size();
+    
     double binWidth = range / cols;
+    
     for (int i = 0; i < cols; i++) {
-        double centerX = minVal + binWidth * (i + 0.5);
-        printf("%f\t%d\t%f\n", centerX, height[i], binWidth);
+        centersX[i] = minVal + binWidth * (i + 0.5);
+        
+        printf("%f\t%d\t%f\n", centersX[i], height[i], binWidth);
     }
+    // погрешности
+    for (int i = 0; i < n; i++) {
+        sum1 += gen[i];
+    }
+    sum1 /= n;
+    
+    for (int i = 0; i < n; i++) {
+        sum2 += (gen[i] - sum1) * (gen[i] - sum1);
+    }
+    sum2 /= n - 1.0;
+    sum2 = sqrt(sum2);
+    
+    if (abs(mean) < 0.001)
+       cerr << abs(sum1 - mean) << " - абсолютная погрешность";
+    else 
+        cerr << "Погрешность на выборочное среднеее в %: " << (abs(sum1 - mean) * 100) / mean;
+        
+    devError = (abs(sum2 - dev) * 100) / dev;
+    cerr << "\nПогрешность на выборочное стандратное отклонение в %: " << devError << "\n";
     
     if (before + after > 0)
         printf("# values outside range: <%g (%d), >=%g (%d)\n", 
@@ -66,13 +95,11 @@ int histogram(const vector<double>& gen, double minVal, double maxVal, int cols)
     return 0;
 }
 
-
-
 int main() {
     srand(static_cast<unsigned>(time(NULL)));
     
-    int n;
     double mean, dev;
+    int n;
     
     cerr << "Введите количество значений: "; cin >> n;
     cerr << "Введите mean: "; cin >> mean;
@@ -85,9 +112,9 @@ int main() {
     double minVal = mean - 3 * dev;
     double maxVal = mean + 3 * dev;
     
-    cerr << "creating histogram (range: [" << minVal << ", " << maxVal << "])... \n";
+    cerr << "creating histogram (range: [" << minVal << ", " << maxVal << "])... \n\n";
     
-    histogram(values, minVal, maxVal, 30);
+    histogram(values, minVal, maxVal, 30, mean, dev);
     
     cerr << "End.. \n";
     return 0;
