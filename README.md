@@ -17,3 +17,7 @@ gnuplot plot.plt
 Пример вывода:
 
 <img width="600" height="400" alt="histogram" src="https://github.com/user-attachments/assets/e1106f56-622f-423d-8642-8d23622431c0" />
+
+Пример отчёта (не проверено):
+
+https://typst.app/project/rE2lHAJVetJFJHZmC6DrVs
