@@ -10,6 +10,7 @@
 using namespace std;
 
 vector<double> gauss(double mean, double dev, int n) {
+    
     vector<double> values;
     values.reserve(n);
     double u, v, s;
