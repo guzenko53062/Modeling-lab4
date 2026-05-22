@@ -13,7 +13,7 @@ vector<double> gauss(double mean, double dev, int n) {
     
     vector<double> values;
     values.reserve(n);
-    double u, v, s;
+    double u, v, s, valuesSum, sum2, devError, meanError;
     
     cerr << "generating values... \n";
     
@@ -26,11 +26,35 @@ vector<double> gauss(double mean, double dev, int n) {
 
         double r = sqrt(-2.0 * log(s) / s);
         
-        if (values.size() < n)
+        if (values.size() < n) {
             values.push_back(r * v * dev + mean);
-        if (values.size() < n)
+            valuesSum += values.back();
+        }
+        if (values.size() < n) {
             values.push_back(r * u * dev + mean);
+            valuesSum += values.back();
+        }
     }
+    
+    valuesSum /= n;
+    valuesSum = 0;
+    sum2 = 0; //выборочное значение стандартного отклонения
+    
+    for (int i = 0; i < n; i++) {
+        sum2 += (values[i] - valuesSum) * (values[i] - valuesSum);
+    }
+    sum2 /= n - 1.0;
+    sum2 = sqrt(sum2);
+    
+    cerr << "\nВыборочное мат. ожидание: " << valuesSum << "\n";
+    
+    if (abs(mean) < 0.001)
+       cerr << abs(valuesSum - mean) << " - абсолютная погрешность мат. ожидания (выборочное - заданное)";
+    else 
+        cerr << "Погрешность на выборочное среднеее в %: " << (abs(valuesSum - mean) * 100) / mean;
+        
+    devError = (abs(sum2 - dev) * 100) / dev;
+    cerr << "\n\nВыборочное стандартное отклонение: " << sum2 << "\nПогрешность на выборочное стандратное отклонение в %: " << devError << "\n\n";
     
     cerr << "generation finished... \n";
     return values;
@@ -38,7 +62,7 @@ vector<double> gauss(double mean, double dev, int n) {
 
 
  
-int histogram(const vector<double>& gen, double minVal, double maxVal, int cols, double mean, double dev) {
+int histogram(const vector<double>& gen, double minVal, double maxVal, int cols) {
     vector<int> height(cols, 0);
     double range = maxVal - minVal;
     int before = 0, after = 0;
@@ -56,10 +80,6 @@ int histogram(const vector<double>& gen, double minVal, double maxVal, int cols,
     }
     double centersX[cols];
     
-    double devError, meanError, sum1, sum2;
-    sum1 = 0; //выборочное среднее
-    sum2 = 0; //выборочное значение стандартного отклонения
-    
     int n = gen.size();
     
     double binWidth = range / cols;
@@ -69,25 +89,6 @@ int histogram(const vector<double>& gen, double minVal, double maxVal, int cols,
         
         printf("%f\t%d\t%f\n", centersX[i], height[i], binWidth);
     }
-    // погрешности
-    for (int i = 0; i < n; i++) {
-        sum1 += gen[i];
-    }
-    sum1 /= n;
-    
-    for (int i = 0; i < n; i++) {
-        sum2 += (gen[i] - sum1) * (gen[i] - sum1);
-    }
-    sum2 /= n - 1.0;
-    sum2 = sqrt(sum2);
-    
-    if (abs(mean) < 0.001)
-       cerr << abs(sum1 - mean) << " - абсолютная погрешность";
-    else 
-        cerr << "Погрешность на выборочное среднеее в %: " << (abs(sum1 - mean) * 100) / mean;
-        
-    devError = (abs(sum2 - dev) * 100) / dev;
-    cerr << "\nПогрешность на выборочное стандратное отклонение в %: " << devError << "\n";
     
     if (before + after > 0)
         printf("# values outside range: <%g (%d), >=%g (%d)\n", 
@@ -115,7 +116,7 @@ int main() {
     
     cerr << "creating histogram (range: [" << minVal << ", " << maxVal << "])... \n\n";
     
-    histogram(values, minVal, maxVal, 30, mean, dev);
+    histogram(values, minVal, maxVal, 30);
     
     cerr << "End.. \n";
     return 0;
